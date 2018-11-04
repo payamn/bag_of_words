@@ -1,0 +1,16 @@
+function [wordMap] = getVisualWords(I, filterBank, dictionary)
+    I = double(I);
+    
+    if(size(I,3)==1 )
+        I = repmat(img, [1 1 3]);
+    end
+
+    wordMap = zeros([ size(I, 1),  size(I, 2)], 'int32');
+    [filter_response] = extractFilterResponses(I, filterBank);
+    dist = pdist2(dictionary, filter_response, 'cosine');
+
+    for i = 1:size(I, 2)
+        [~, indices] = min(dist, [], 2);
+        wordMap(i, :) = indices';
+    end
+end

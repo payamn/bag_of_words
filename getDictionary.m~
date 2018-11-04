@@ -1,0 +1,35 @@
+function [dictionary] = getDictionary(imgPaths, alpha, K, method)
+    filterBank = createFilterBank();    
+    features = zeros([length(imgPaths)*alpha, length(filterBank)*3], 'double');
+    
+    for img_index=1:length(imgPaths)
+        length(imgPaths)
+        im = imread(strcat('../data/', cell2mat(imgPaths(img_index))));
+        im = double(im);
+        %check number of dimentions
+        if (ndims(im) ~= 3)
+            im = cat(3, im, im, im);
+        end
+
+        if strcmpi(method, '‘harris’')
+            pts = getHarrisPoints(im, alpha, K);
+            
+        else
+            pts = getRandomPoints(im, alpha);
+        end
+        
+        % extract filter responses
+        filterResponses = extractFilterResponses(im, filterBank);
+        for pts_idx=1:size(pts, 2)
+            pts_idx;
+            x = pts(2, pts_idx);
+            y = pts(1, pts_idx);
+            if x ==0 || y ==0
+                continue
+            end
+            feature = filterResponses(pts(1, pts_idx), pts(2, pts_idx), :);
+            features(((img_index-1)*length(pts)+ pts_idx), :) = feature(:)';
+        end       
+    end
+    [~, dictionary] = kmeans(features, K, 'EmptyAction', 'drop');
+    save('../data/dictionary.mat', 'filterBank', 'dictionary');
